@@ -1,0 +1,44 @@
+{
+  "name": "ksp-rocket-sim",
+  "version": "1.0.0",
+  "description": "Simulation engine for KSP rockets",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/poteat/ksp-rocket-sim.git"
+  },
+  "keywords": [
+    "ksp",
+    "rockets",
+    "simulation",
+    "optimization"
+  ],
+  "author": "Michael Poteat <me@mpote.at>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/poteat/ksp-rocket-sim/issues"
+  },
+  "homepage": "https://github.com/poteat/ksp-rocket-sim#readme",
+  "devDependencies": {
+    "@types/lodash": "^4.14.146",
+    "@types/node": "^12.12.7",
+    "@typescript-eslint/eslint-plugin": "^2.6.1",
+    "@typescript-eslint/parser": "^2.6.1",
+    "eslint": "^6.6.0",
+    "eslint-config-prettier": "^6.5.0",
+    "eslint-plugin-prettier": "^3.1.1",
+    "prettier": "^1.19.1",
+    "typescript": "^3.7.2"
+  },
+  "dependencies": {
+    "canvas": "^2.6.0",
+    "fp-ts": "^2.1.2",
+    "io-ts": "^2.0.1",
+    "lodash": "^4.17.15",
+    "open": "^7.0.0",
+    "variadic-y": "^2.0.1"
+  }
+}
