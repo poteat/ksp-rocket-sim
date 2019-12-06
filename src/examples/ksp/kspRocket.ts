@@ -151,10 +151,13 @@ const thrustEquation = (
     },
     stages
   }: Parameters,
-  controlMode: ControlMode
+  controlMode: ControlMode,
+  targetOrbitalHeight: number
 ) => {
   let angle = 0;
   let throttle = 0;
+
+  console.log(controlMode);
 
   if (controlMode === "Vertical Ascent") {
     throttle = 1;
@@ -180,18 +183,33 @@ const thrustEquation = (
     }
 
     // Transfer to coasting period if apoapsis becomes high enough
+    const S = environmentalConstants.planet.standardGravitationalParameter;
+    const R = environmentalConstants.planet.radius;
+
+    const speed = Math.sqrt(vx ** 2 + vy ** 2);
+    const distance = Math.sqrt(x ** 2 + y ** 2);
+
+    const E = speed ** 2 / 2 - S / distance;
+    const semiMajorAxis = -S / (2 * E);
+
+    const angularMomentumX = vy * (x * vy - y * vx);
+    const angularMomentumY = -vx * (x * vy - y * vx);
+
+    const eccentricity = Math.sqrt(
+      (angularMomentumX / S - x / distance) ** 2 +
+        (angularMomentumY / S - y / distance) ** 2
+    );
+
+    const apoapsis = semiMajorAxis * (1 + eccentricity) - R;
+
+    console.log(apoapsis);
+
+    if (apoapsis > targetOrbitalHeight) {
+      controlMode = "Coasting Period";
+    }
   } else if (controlMode === "Coasting Period") {
     throttle = 0;
     angle = 0;
-
-    const speed = Math.sqrt(vx * vx + vy * vy);
-    const distance = Math.sqrt(x * x + y * y);
-    const S = environmentalConstants.planet.standardGravitationalParameter;
-
-    const val1 = speed ** 2 / 2 - S / distance;
-    const val2 = -S / (2 * val1);
-
-    const angularMomentum = cross(p, v);
   } else if (controlMode === "Circularization Burn") {
     throttle = 0;
     angle = 0;
@@ -200,8 +218,11 @@ const thrustEquation = (
   // If throttle is zero, skip the fancy atmospheric thrust computations
   if (throttle === 0) {
     return {
-      ax: 0,
-      ay: 0
+      thrustAccel: {
+        ax: 0,
+        ay: 0
+      },
+      controlMode
     };
   }
 
@@ -220,8 +241,11 @@ const thrustEquation = (
   }
 
   return {
-    ax: (sumThrust / m) * Math.cos(angle),
-    ay: (sumThrust / m) * Math.sin(angle)
+    thrustAccel: {
+      ax: (sumThrust / m) * Math.cos(angle),
+      ay: (sumThrust / m) * Math.sin(angle)
+    },
+    controlMode
   };
 };
 
@@ -240,8 +264,10 @@ export const rocketStateEquation: (
   }
 
   const gravityAccel = gravityEquation({ x, y });
+
   const dragAccel = dragEquation({ x, y, vx, vy }, height);
-  const thrustAccel = thrustEquation(
+
+  const { thrustAccel, controlMode: newControlMode } = thrustEquation(
     { x, y, vx, vy, m, stageIndex, controlMode },
     height,
     {
@@ -249,10 +275,9 @@ export const rocketStateEquation: (
       targetOrbitalHeight,
       stages
     },
-    controlMode
+    controlMode,
+    targetOrbitalHeight
   );
-
-  console.log(thrustAccel);
 
   const ax = gravityAccel.ax + dragAccel.ax + thrustAccel.ax;
   const ay = gravityAccel.ay + dragAccel.ay + thrustAccel.ay;
@@ -265,7 +290,7 @@ export const rocketStateEquation: (
       vy,
       m,
       stageIndex,
-      controlMode
+      controlMode: newControlMode
     },
     derivative: {
       x: vx,
@@ -295,8 +320,8 @@ const params: Parameters = {
           vacuumISP: 310
         }
       ],
-      initMass: 2,
-      dryMass: 1.5
+      initMass: 3,
+      dryMass: 3.5
     }
   ]
 };
@@ -321,8 +346,7 @@ const serialized = statePath
   .map(x => _.map(x, x => (_.isNumber(x) ? x.toFixed(2) : x)).join(", "))
   .join("\n");
 
-console.log(serialized);
-
-console.log(endingReason);
+// console.log(serialized);
+// console.log(endingReason);
 
 writeFileSync("./data/simResult.csv", serialized);
