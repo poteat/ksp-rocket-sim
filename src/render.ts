@@ -2,30 +2,29 @@ import { createCanvas } from "canvas";
 import open from "open";
 import { writeFileSync } from "fs";
 
-const canvas = createCanvas(200, 200);
+const radius = 6e5;
+
+const sidelength = 1200;
+const zoom = 0.8;
+
+const scale = sidelength / (radius * zoom);
+
+const canvas = createCanvas(sidelength, sidelength);
 const ctx = canvas.getContext("2d");
 
-// Write "Awesome!"
-ctx.font = "30px Impact";
-ctx.rotate(0.1);
-ctx.fillText("Awesome!", 50, 100);
-
-// Draw line under text
-const text = ctx.measureText("Awesome!");
-ctx.strokeStyle = "rgba(0,0,0,0.5)";
+// Draw planet
+ctx.strokeStyle = "white";
 ctx.beginPath();
-ctx.lineTo(50, 102);
-ctx.lineTo(50 + text.width, 102);
+ctx.arc(
+  sidelength / 2,
+  sidelength / 2,
+  (sidelength / 2) * zoom,
+  0,
+  2 * Math.PI
+);
 ctx.stroke();
 
-// Draw cat with lime helmet
-// loadImage("examples/images/lime-cat.jpg").then(image => {
-//   ctx.drawImage(image, 50, 0, 70, 70);
-
-//   console.log('<img src="' + canvas.toDataURL() + '" />');
-// });
-
-const html = `<img src="${canvas.toDataURL()}" />`;
+const html = `<body style="background-color: #222222"><img src="${canvas.toDataURL()}"/></body>`;
 
 writeFileSync("./render/chart.html", html);
 open("./render/chart.html");
